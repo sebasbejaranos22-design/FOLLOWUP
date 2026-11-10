@@ -1,0 +1,12 @@
+# Ignorar dependencias pesadas
+node_modules/
+**/node_modules/
+
+# Ignorar credenciales y secretos (Buenas prácticas de seguridad)
+.env
+**/.env
+*.env.local
+
+# Ignorar archivos temporales del sistema
+.DS_Store
+Thumbs.db
