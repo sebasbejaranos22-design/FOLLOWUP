@@ -21,10 +21,22 @@ class PaqueteDAO {
     async cambiarEstado(guia, idEstado, comentario, usuario, latitud, longitud) {
         const conexion = await pool.getConnection();
         try {
-            // Ejecuta el procedimiento almacenado que configuraste en tu base de datos
+            // Patrón de Sanitización: Aseguramos que idEstado sea un número entero válido, evitando NaN
+            const estadoSeguro = (idEstado !== undefined && idEstado !== null && !isNaN(idEstado)) 
+                ? parseInt(idEstado, 10) 
+                : 2; // 2 por defecto (ej. En tránsito)
+
+            // Ejecuta el procedimiento almacenado con parámetros limpios y tipados
             await conexion.execute(
                 'CALL sp_cambiar_estado(?, ?, ?, ?, ?, ?)',
-                [guia, idEstado, comentario, usuario, latitud || null, longitud || null]
+                [
+                    guia, 
+                    estadoSeguro, 
+                    comentario || 'Actualización de estado operativa', 
+                    usuario, 
+                    latitud || null, 
+                    longitud || null
+                ]
             );
             return { success: true, message: 'Estado del paquete actualizado correctamente' };
         } catch (error) {

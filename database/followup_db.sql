@@ -422,7 +422,7 @@ EXPLAIN SELECT usuario, accion, fecha
 FROM auditoria FORCE INDEX (idx_auditoria_fecha)
 WHERE fecha >= '2026-01-01' ORDER BY fecha DESC;
 
-ANALYZE SELECT * FROM v_rastreo WHERE numero_serie = 'PKG001';
+EXPLAIN ANALYZE SELECT * FROM v_rastreo WHERE numero_serie = 'PKG001';
 
 START TRANSACTION;
 
