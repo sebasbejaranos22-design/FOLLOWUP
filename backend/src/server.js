@@ -9,9 +9,18 @@ const path = require('path');
 const express = require('express');
 const { pool } = require('./db');
 const manejarErrores = require('./middleware/errores');
+const cors = require('cors');
 
 const app = express();
 app.disable('x-powered-by');
+
+// Configuración CORS para GitHub Codespaces
+app.use(cors({
+  origin: 'https://bookish-space-guacamole-jr776xqp94gpfxr6-8081.app.github.dev',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '10kb' }));
 
 app.use((req, res, next) => {
@@ -28,7 +37,7 @@ app.use('/api/paquetes', require('./routes/paquetes.routes'));
 app.use('/api', require('./routes/catalogos.routes'));
 app.use('/api', (req, res) => res.status(404).json({ error: 'Esa ruta no existe' }));
 
-// El mismo servidor entrega el frontend, así no hace falta configurar CORS
+// Servir archivos estáticos del frontend cuando corresponda
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend')));
 
 app.use(manejarErrores);
