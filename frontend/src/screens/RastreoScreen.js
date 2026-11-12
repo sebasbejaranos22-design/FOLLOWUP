@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MapaLogistico from '../components/MapaLogistico';
+
 import {
   House,
   Search,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react-native';
 
 import {
+  Animated,
   View,
   Text,
   TextInput,
@@ -84,6 +86,32 @@ export default function RastreoScreen() {
     tipo: '',
     texto: '',
   });
+
+  // LUCES ANIMADAS DEL FONDO
+const luzUno = useRef(new Animated.Value(0)).current;
+const luzDos = useRef(new Animated.Value(0)).current;
+
+useEffect(() => {
+  const animarLuz = (luz, duracion) => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(luz, {
+          toValue: 1,
+          duration: duracion,
+          useNativeDriver: true,
+        }),
+        Animated.timing(luz, {
+          toValue: 0,
+          duration: duracion,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  animarLuz(luzUno, 7000);
+  animarLuz(luzDos, 9000);
+}, []);
 
   useEffect(() => {
   const cargarPaquetes = async () => {
@@ -1069,6 +1097,154 @@ const renderOperations = () => (
   // INTERFAZ PRINCIPAL
   return (
     <View style={styles.screen}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.luzAmbiental,
+          styles.luzAzul,
+          {
+            opacity: luzUno.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.08, 0.28],
+            }),
+            transform: [
+              {
+                translateX: luzUno.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 100],
+                }),
+              },
+              {
+                translateY: luzUno.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 100],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.luzAmbiental,
+          styles.luzCeleste,
+          {
+            opacity: luzDos.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.05, 0.2],
+            }),
+            transform: [
+              {
+                translateX: luzDos.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, -80],
+                }),
+              },
+              {
+                translateY: luzDos.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [80, -60],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+
+      {/* BURBUJAS ANIMADAS */}
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 90,
+      height: 90,
+      top: 100,
+      left: 80,
+      opacity: 0.12,
+      transform: [{ translateY: luzUno.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -70],
+      }) }],
+    },
+  ]}
+/>
+
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 35,
+      height: 35,
+      top: 280,
+      right: 100,
+      opacity: 0.18,
+      transform: [{ translateY: luzDos.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 60],
+      }) }],
+    },
+  ]}
+/>
+
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 60,
+      height: 60,
+      top: 500,
+      left: 250,
+      opacity: 0.10,
+    },
+  ]}
+/>
+
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 25,
+      height: 25,
+      top: 180,
+      right: 300,
+      opacity: 0.20,
+    },
+  ]}
+/>
+
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 110,
+      height: 110,
+      bottom: 100,
+      right: 80,
+      opacity: 0.08,
+    },
+  ]}
+/>
+
+<Animated.View
+  pointerEvents="none"
+  style={[
+    styles.burbuja,
+    {
+      width: 45,
+      height: 45,
+      bottom: 250,
+      left: 100,
+      opacity: 0.15,
+    },
+  ]}
+/>
       <StatusBar
         barStyle="light-content"
         backgroundColor={COLORS.background}
@@ -1228,15 +1404,41 @@ brandName: {
   letterSpacing: 1,
 },
 
-brandTagline: {
-  color: '#94A3B8',
-  fontSize: 9,
-  letterSpacing: 2,
-  marginTop: 3,
-},
-  screen: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+  brandTagline: {
+    color: '#94A3B8',
+    fontSize: 9,
+    letterSpacing: 2,
+    marginTop: 3,
+  },
+    screen: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+
+    luzAmbiental: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    zIndex: 0,
+  },
+
+  luzAzul: {
+    backgroundColor: '#2563EB',
+    top: 100,
+    left: -100,
+  },
+
+  luzCeleste: {
+    backgroundColor: '#38BDF8',
+    top: 350,
+    right: -120,
+  },
+  burbuja: {
+    position: 'absolute',
+    borderRadius: 999,
+    backgroundColor: '#3B82F6',
+    zIndex: 0,
   },
 
   mainLayout: {
