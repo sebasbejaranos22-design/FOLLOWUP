@@ -158,20 +158,23 @@ router.get('/', requireAuth, async (req, res) => {
 
     const [filas] = await pool.execute(
       `SELECT
-        numero_serie,
-        descripcion,
-        empresa,
-        cliente,
-        id_estado,
-        estado,
-        es_final,
-        fecha_envio,
-        fecha_entrega
-       FROM v_rastreo
-       ${donde}
-       ORDER BY id_paquete DESC`,
+      numero_serie,
+      descripcion,
+      empresa,
+      cliente,
+      id_estado,
+      estado,
+      es_final,
+      fecha_envio,
+      fecha_entrega,
+      ultima_latitud,
+      ultima_longitud,
+      fecha_ultima_ubicacion
+      FROM v_rastreo
+      ${donde}
+      ORDER BY id_paquete DESC`,
       params
-    );
+      );
 
     res.json(
       filas.map((f) => ({

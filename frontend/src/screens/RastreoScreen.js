@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import MapaLogistico from '../components/MapaLogistico';
+
 import {
   View,
   Text,
@@ -87,6 +89,8 @@ export default function RastreoScreen() {
       setCargandoEstadisticas(true);
 
       const data = await followUpApi.listarPaquetes();
+
+      console.log('PAQUETES RECIBIDOS:', data);
 
       setPaquetes(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -318,128 +322,116 @@ export default function RastreoScreen() {
     </View>
   );
 
-  // LÍNEA DE TIEMPO
-  const renderTimeline = () => {
-    if (!paquete) return null;
+  
+// LÍNEA DE TIEMPO
+const renderTimeline = () => {
+  if (!paquete) return null;
 
-    return (
-      <View style={styles.timelineCard}>
-        <View style={styles.timelineHeader}>
-          <View>
-            <Text style={styles.cardEyebrow}>
-              PROGRESO DEL ENVÍO
-            </Text>
+  return (
+    <View style={styles.timelineCard}>
+      <View style={styles.timelineHeader}>
+        <View>
+          <Text style={styles.cardEyebrow}>PROGRESO DEL ENVÍO</Text>
+          <Text style={styles.cardTitle}>Estado del paquete</Text>
+        </View>
 
-            <Text style={styles.cardTitle}>
-              Estado del paquete
-            </Text>
-          </View>
-
+        <View
+          style={[
+            styles.statusPill,
+            {
+              backgroundColor: `${estadoInfo?.color || COLORS.muted}20`,
+            },
+          ]}
+        >
           <View
             style={[
-              styles.statusPill,
-              {
-                backgroundColor:
-                  `${estadoInfo?.color || COLORS.muted}20`,
-              },
+              styles.statusDot,
+              { backgroundColor: estadoInfo?.color || COLORS.muted },
+            ]}
+          />
+          <Text
+            style={[
+              styles.statusPillText,
+              { color: estadoInfo?.color || COLORS.muted },
             ]}
           >
-            <View
-              style={[
-                styles.statusDot,
-                {
-                  backgroundColor:
-                    estadoInfo?.color || COLORS.muted,
-                },
-              ]}
-            />
-
-            <Text
-              style={[
-                styles.statusPillText,
-                {
-                  color: estadoInfo?.color || COLORS.muted,
-                },
-              ]}
-            >
-              {paquete.estado || 'Sin estado'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.timeline}>
-          {ESTADOS_ENVIO.map((item, index) => {
-            const completed =
-              estadoActual === 3
-                ? item.id <= 3
-                : item.id === estadoActual;
-
-            const active = item.id === estadoActual;
-
-            return (
-              <View key={item.id} style={styles.timelineStep}>
-                <View style={styles.timelineRail}>
-                  <View
-                    style={[
-                      styles.timelineNode,
-                      completed && {
-                        backgroundColor: item.color,
-                        borderColor: item.color,
-                      },
-                      active && styles.timelineNodeActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.timelineNodeText,
-                        completed && styles.timelineNodeTextActive,
-                      ]}
-                    >
-                      {completed ? '✓' : String(index + 1)}
-                    </Text>
-                  </View>
-
-                  {index < ESTADOS_ENVIO.length - 1 && (
-                    <View
-                      style={[
-                        styles.timelineLine,
-                        completed && {
-                          backgroundColor: item.color,
-                        },
-                      ]}
-                    />
-                  )}
-                </View>
-
-                <View style={styles.timelineCopy}>
-                  <Text
-                    style={[
-                      styles.timelineLabel,
-                      active && { color: COLORS.white },
-                    ]}
-                  >
-                    {item.nombre}
-                  </Text>
-
-                  <Text style={styles.timelineDetail}>
-                    {item.detalle}
-                  </Text>
-                </View>
-
-                {active && (
-                  <Text style={styles.currentLabel}>
-                    ACTUAL
-                  </Text>
-                )}
-              </View>
-            );
-          })}
+            {paquete.estado || 'Sin estado'}
+          </Text>
         </View>
       </View>
-    );
-  };
+
+      <View style={styles.timeline}>
+        {ESTADOS_ENVIO.map((item, index) => {
+          const completed =
+            estadoActual === 3
+              ? item.id <= 3
+              : item.id === estadoActual;
+
+          const active = item.id === estadoActual;
+
+          return (
+            <View key={item.id} style={styles.timelineStep}>
+              <View style={styles.timelineRail}>
+                <View
+                  style={[
+                    styles.timelineNode,
+                    completed && {
+                      backgroundColor: item.color,
+                      borderColor: item.color,
+                    },
+                    active && styles.timelineNodeActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.timelineNodeText,
+                      completed && styles.timelineNodeTextActive,
+                    ]}
+                  >
+                    {completed ? '✓' : String(index + 1)}
+                  </Text>
+                </View>
+
+                {index < ESTADOS_ENVIO.length - 1 && (
+                  <View
+                    style={[
+                      styles.timelineLine,
+                      completed && { backgroundColor: item.color },
+                    ]}
+                  />
+                )}
+              </View>
+
+              <View style={styles.timelineCopy}>
+                <Text
+                  style={[
+                    styles.timelineLabel,
+                    completed && { color: COLORS.white },
+                  ]}
+                >
+                  {item.nombre}
+                </Text>
+
+                <Text style={styles.timelineDetail}>
+                  {item.detalle}
+                </Text>
+
+                {active && (
+                <Text style={styles.currentLabel}>ESTADO ACTUAL</Text>
+              )}
+              </View>
+
+              
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
   // BÚSQUEDA DE ENVÍOS
+  
   const renderSearch = () => (
     <View style={styles.panel}>
       <View style={styles.panelHeader}>
@@ -449,51 +441,58 @@ export default function RastreoScreen() {
 
         <View style={styles.panelHeaderCopy}>
           <Text style={styles.cardTitle}>
-            Rastrear un envío
+            Rastrea tu paquete
           </Text>
 
           <Text style={styles.cardSubtitle}>
-            Consulta el estado de tu paquete en tiempo real
+            Consulta dónde está tu envío y conoce su estado actual.
           </Text>
         </View>
       </View>
 
-      <Text style={styles.inputLabel}>
-        NÚMERO DE GUÍA
-      </Text>
+      <View style={styles.searchSection}>
+        <Text style={styles.inputLabel}>
+          NÚMERO DE GUÍA
+        </Text>
 
-      <View style={styles.searchRow}>
-        <TextInput
-          style={styles.searchInput}
-          value={guia}
-          onChangeText={setGuia}
-          placeholder="Ej. PKG001"
-          placeholderTextColor="#64748B"
-          autoCapitalize="characters"
-          returnKeyType="search"
-          onSubmitEditing={handleRastrear}
-        />
+        <View style={styles.searchRow}>
+          <View style={styles.searchInputWrapper}>
+            <Text style={styles.searchIcon}>⌕</Text>
 
-        <TouchableOpacity
-          style={[styles.primaryButton, styles.searchButton]}
-          onPress={handleRastrear}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <Text style={styles.primaryButtonText}>
-              Buscar
-            </Text>
-          )}
-        </TouchableOpacity>
+            <TextInput
+              style={styles.searchInput}
+              value={guia}
+              onChangeText={setGuia}
+              placeholder="Ej. PKG001"
+              placeholderTextColor="#64748B"
+              autoCapitalize="characters"
+              returnKeyType="search"
+              onSubmitEditing={handleRastrear}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.primaryButton, styles.searchButton]}
+            onPress={handleRastrear}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                Buscar →
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.searchHelper}>
+          Introduce el código de seguimiento proporcionado por la empresa transportadora.
+        </Text>
       </View>
-
-      <Text style={styles.helperText}>
-        Ingresa el código de seguimiento proporcionado por la empresa transportadora.
-      </Text>
     </View>
   );
+
 
   // INFORMACIÓN DEL PAQUETE
   const renderPackage = () => (
@@ -611,149 +610,190 @@ export default function RastreoScreen() {
   );
 
 
-  // DASHBOARD PRINCIPAL
-  const renderDashboard = () => (
-    <>
-      <SectionTitle
-        eyebrow="CENTRO DE CONTROL"
-        title="Resumen general"
-        description="Bienvenido a tu plataforma inteligente de seguimiento logístico."
-      />
+  
+  
+// DASHBOARD PRINCIPAL
+const renderDashboard = () => {
+  const paqueteDestacado = paquetes[0];
 
-      <View style={styles.welcomeCard}>
-        <View style={styles.welcomeTextWrap}>
-          <Text style={styles.welcomeEyebrow}>
-            FOLLOWUP SATELITAL
+  return (
+    <View style={styles.dashboard}>
+      <View style={styles.dashboardTop}>
+        <View>
+          <Text style={styles.dashboardEyebrow}>CENTRO LOGÍSTICO</Text>
+          <Text style={styles.dashboardTitle}>Dashboard</Text>
+          <Text style={styles.dashboardSubtitle}>
+            Control y seguimiento de tus envíos.
           </Text>
+        </View>
 
-          <Text style={styles.welcomeTitle}>
-            Cada envío, bajo control.
-          </Text>
+        <View style={styles.dashboardLive}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>SISTEMA ACTIVO</Text>
+        </View>
+      </View>
 
-          <Text style={styles.welcomeDescription}>
-            Consulta movimientos y mantén el control de tus operaciones desde un solo lugar.
-          </Text>
-
-          <TouchableOpacity
-            style={styles.welcomeButton}
-            onPress={() => setSeccion('rastreo')}
-          >
-            <Text style={styles.welcomeButtonText}>
-              Rastrear paquete →
+      {/* INDICADORES */}
+      <View style={styles.dashboardStats}>
+        {[
+          { label: 'TOTAL ENVÍOS', value: totalEnvios, color: COLORS.blueLight },
+          { label: 'EN BODEGA', value: enBodega, color: COLORS.amber },
+          { label: 'EN RUTA', value: enRuta, color: COLORS.blueLight },
+          { label: 'ENTREGADOS', value: entregados, color: COLORS.green },
+        ].map((stat) => (
+          <View key={stat.label} style={styles.dashboardStat}>
+            <Text style={styles.dashboardStatLabel}>{stat.label}</Text>
+            <Text style={[styles.dashboardStatValue, { color: stat.color }]}>
+              {cargandoEstadisticas ? '...' : stat.value}
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        ))}
+      </View>
 
-        <View style={styles.welcomeOrb}>
-          <View style={styles.packageIllustration}>
-            <Text style={styles.packageIcon}>▣</Text>
+      {/* DISTRIBUCIÓN PRINCIPAL */}
+      <View style={styles.dashboardColumns}>
+
+        {/* IZQUIERDA: MAPA */}
+        <View style={styles.mapPanel}>
+          <View style={styles.dashboardPanelHeader}>
+            <View>
+              <Text style={styles.dashboardPanelTitle}>Mapa logístico</Text>
+              <Text style={styles.dashboardPanelSubtitle}>
+                Ubicación de los envíos disponibles
+              </Text>
+            </View>
+            <Text style={styles.mapPanelIcon}>⌖</Text>
           </View>
 
-          <View style={styles.routeLine}>
-            <View style={styles.routePoint} />
-            <View style={styles.routePoint} />
-            <View style={styles.routePoint} />
+          <MapaLogistico paquetes={paquetes} />
+        </View>
+
+        {/* DERECHA: ENVÍOS Y DETALLES */}
+        <View style={styles.dashboardRight}>
+
+          {/* TUS ENVÍOS */}
+          <View style={styles.shipmentsPanel}>
+            <View style={styles.dashboardPanelHeader}>
+              <View>
+                <Text style={styles.dashboardPanelTitle}>Tus envíos</Text>
+                <Text style={styles.dashboardPanelSubtitle}>
+                  Paquetes registrados
+                </Text>
+              </View>
+              <Text style={styles.shipmentCount}>{paquetes.length}</Text>
+            </View>
+
+            {cargandoEstadisticas ? (
+              <ActivityIndicator color={COLORS.blueLight} />
+            ) : paquetes.length === 0 ? (
+              <Text style={styles.dashboardEmpty}>
+                Inicia sesión para consultar tus envíos.
+              </Text>
+            ) : (
+              paquetes.map((item, index) => (
+                <TouchableOpacity
+                  key={item.numero_serie || index}
+                  style={styles.shipmentItem}
+                  onPress={() => {
+                    setGuia(item.numero_serie);
+                    setSeccion('rastreo');
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.shipmentItemTop}>
+                    <Text style={styles.shipmentGuide}>
+                      {item.numero_serie}
+                    </Text>
+
+                    <View style={styles.shipmentStatus}>
+                      <View
+                        style={[
+                          styles.shipmentStatusDot,
+                          {
+                            backgroundColor:
+                              Number(item.id_estado) === 3
+                                ? COLORS.green
+                                : Number(item.id_estado) === 2
+                                ? COLORS.blueLight
+                                : Number(item.id_estado) === 4
+                                ? COLORS.red
+                                : COLORS.amber,
+                          },
+                        ]}
+                      />
+                      <Text style={styles.shipmentStatusText}>
+                        {item.estado || 'Sin estado'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.shipmentRecipient}>
+                    {item.destinatario || item.cliente || 'Destinatario protegido'}
+                  </Text>
+
+                  <Text style={styles.shipmentCompany}>
+                    {item.empresa || 'Transportadora no disponible'}
+                  </Text>
+
+                  <Text style={styles.shipmentAction}>
+                    VER SEGUIMIENTO →
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
 
-          <Text style={styles.routeDestination}>⌖</Text>
+          {/* DETALLES DE OPERACIÓN */}
+          <View style={styles.operationPanel}>
+            <Text style={styles.dashboardPanelTitle}>
+              Detalles de operación
+            </Text>
+
+            {paqueteDestacado ? (
+              <>
+                <View style={styles.operationDetailRow}>
+                  <Text style={styles.operationLabel}>GUÍA</Text>
+                  <Text style={styles.operationValue}>
+                    {paqueteDestacado.numero_serie}
+                  </Text>
+                </View>
+
+                <View style={styles.operationDetailRow}>
+                  <Text style={styles.operationLabel}>DESTINATARIO</Text>
+                  <Text style={styles.operationValue}>
+                    {paqueteDestacado.destinatario ||
+                      paqueteDestacado.cliente || 'Protegido'}
+                  </Text>
+                </View>
+
+                <View style={styles.operationDetailRow}>
+                  <Text style={styles.operationLabel}>TRANSPORTADORA</Text>
+                  <Text style={styles.operationValue}>
+                    {paqueteDestacado.empresa || 'FollowUp'}
+                  </Text>
+                </View>
+
+                <View style={styles.operationDetailRow}>
+                  <Text style={styles.operationLabel}>ESTADO</Text>
+                  <Text style={styles.operationValue}>
+                    {paqueteDestacado.estado || 'Sin estado'}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <Text style={styles.dashboardEmpty}>
+                No hay información de operaciones disponible.
+              </Text>
+            )}
+          </View>
+
         </View>
-      </View>
-
-      
-    <View style={styles.statsRow}>
-      <View style={styles.statCard}>
-        <Text style={styles.statIcon}>▣</Text>
-        <Text style={styles.statLabel}>TOTAL DE ENVÍOS</Text>
-        <Text style={styles.statValue}>{cargandoEstadisticas ? '...' : totalEnvios}</Text>
-        <Text style={styles.statFoot}>Paquetes registrados</Text>
-      </View>
-
-      <View style={styles.statCard}>
-        <Text style={styles.statIcon}>◉</Text>
-        <Text style={styles.statLabel}>EN BODEGA</Text>
-        <Text style={styles.statValue}>{cargandoEstadisticas ? '...' : enBodega}</Text>
-        <Text style={styles.statFoot}>Pendientes de despacho</Text>
-      </View>
-
-      <View style={styles.statCard}>
-        <Text style={styles.statIcon}>➜</Text>
-        <Text style={styles.statLabel}>EN RUTA</Text>
-        <Text style={styles.statValue}>{cargandoEstadisticas ? '...' : enRuta}</Text>
-        <Text style={styles.statFoot}>En tránsito</Text>
-      </View>
-
-      <View style={styles.statCard}>
-        <Text style={styles.statIcon}>✓</Text>
-        <Text style={styles.statLabel}>ENTREGADOS</Text>
-        <Text style={styles.statValue}>{cargandoEstadisticas ? '...' : entregados}</Text>
-        <Text style={styles.statFoot}>Entregas confirmadas</Text>
       </View>
     </View>
-
-
-      <View style={styles.panel}>
-        <View style={styles.panelHeader}>
-          <View style={styles.panelIcon}>
-            <Text style={styles.panelIconText}>⌖</Text>
-          </View>
-
-          <View style={styles.panelHeaderCopy}>
-            <Text style={styles.cardTitle}>
-              Accesos rápidos
-            </Text>
-
-            <Text style={styles.cardSubtitle}>
-              Continúa con una operación
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={styles.quickLink}
-          onPress={() => setSeccion('rastreo')}
-        >
-          <View style={styles.quickLinkIcon}>
-            <Text style={styles.quickLinkIconText}>⌕</Text>
-          </View>
-
-          <View style={styles.quickLinkCopy}>
-            <Text style={styles.quickLinkTitle}>
-              Consultar envío
-            </Text>
-
-            <Text style={styles.quickLinkDescription}>
-              Busca una guía y revisa su recorrido
-            </Text>
-          </View>
-
-          <Text style={styles.quickArrow}>›</Text>
-        </TouchableOpacity>
-
-        <View style={styles.panelDivider} />
-
-        <TouchableOpacity
-          style={styles.quickLink}
-          onPress={() => setSeccion('operaciones')}
-        >
-          <View style={styles.quickLinkIcon}>
-            <Text style={styles.quickLinkIconText}>⚙</Text>
-          </View>
-
-          <View style={styles.quickLinkCopy}>
-            <Text style={styles.quickLinkTitle}>
-              Portal de operaciones
-            </Text>
-
-            <Text style={styles.quickLinkDescription}>
-              Acceso de operadores y control RFID
-            </Text>
-          </View>
-
-          <Text style={styles.quickArrow}>›</Text>
-        </TouchableOpacity>
-      </View>
-    </>
   );
+};
+
+
 
   // SECCIÓN DE RASTREO
   const renderTracking = () => (
@@ -774,180 +814,235 @@ export default function RastreoScreen() {
     </>
   );
 
-  // PANEL ADMINISTRATIVO
-  const renderOperations = () => (
-    <>
-      <SectionTitle
-        eyebrow="PANEL ADMINISTRATIVO"
-        title="Centro de operaciones"
-        description="Gestiona los estados de los paquetes con acceso autorizado."
-      />
+  
 
-      <View style={styles.panel}>
-        <View style={styles.panelHeader}>
-          <View style={styles.panelIcon}>
-            <Text style={styles.panelIconText}>⌘</Text>
-          </View>
 
-          <View style={styles.panelHeaderCopy}>
-            <Text style={styles.cardTitle}>
-              Portal RFID · Acceso seguro
-            </Text>
+// PANEL ADMINISTRATIVO
+const renderOperations = () => (
+  <>
+    <SectionTitle
+      eyebrow="PANEL ADMINISTRATIVO"
+      title="Centro de operaciones"
+      description="Gestiona y controla los movimientos de tus paquetes."
+    />
 
-            <Text style={styles.cardSubtitle}>
-              Autenticación protegida mediante token JWT
-            </Text>
-          </View>
+    <View style={[styles.panel, styles.operationsMainPanel]}>
+      {/* ENCABEZADO */}
+      <View style={styles.panelHeader}>
+        <View style={styles.panelIcon}>
+          <Text style={styles.panelIconText}>⌘</Text>
         </View>
 
-        {!usuarioActivo ? (
-          <>
-            <Text style={styles.inputLabel}>
-              CORREO ELECTRÓNICO
-            </Text>
+        <View style={styles.panelHeaderCopy}>
+          <Text style={styles.cardTitle}>
+            Portal RFID · Acceso seguro
+          </Text>
+          <Text style={styles.cardSubtitle}>
+            Gestión protegida mediante autenticación JWT
+          </Text>
+        </View>
 
-            <TextInput
-              style={styles.formInput}
-              value={correo}
-              onChangeText={setCorreo}
-              placeholder="operador@followup.com"
-              placeholderTextColor="#64748B"
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-
-            <Text style={styles.inputLabel}>
-              CONTRASEÑA
-            </Text>
-
-            <TextInput
-              style={styles.formInput}
-              value={clave}
-              onChangeText={setClave}
-              placeholder="Ingresa tu contraseña"
-              placeholderTextColor="#64748B"
-              secureTextEntry
-            />
-
-            <TouchableOpacity
-              style={[styles.primaryButton, styles.loginButton]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <Text style={styles.primaryButtonText}>
-                  Iniciar sesión
-                </Text>
-              )}
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <View style={styles.operatorRow}>
-              <View style={styles.operatorAvatar}>
-                <Text style={styles.operatorAvatarText}>
-                  {(usuarioActivo.correo || correo)
-                    .charAt(0)
-                    .toUpperCase()}
-                </Text>
-              </View>
-
-              <View style={styles.operatorInfo}>
-                <Text style={styles.operatorName}>
-                  {usuarioActivo.correo || correo}
-                </Text>
-
-                <Text style={styles.operatorRole}>
-                  Operador autenticado
-                </Text>
-              </View>
-
-              <TouchableOpacity onPress={handleLogout}>
-                <Text style={styles.logoutText}>Salir</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.panelDivider} />
-
-            <Text style={styles.inputLabel}>
-              GUÍA SELECCIONADA
-            </Text>
-
-            <Text style={styles.selectedGuide}>
-              {paquete?.numero_serie || 'Ninguna guía consultada'}
-            </Text>
-
-            <Text style={styles.inputLabel}>
-              COMENTARIO DE AUDITORÍA
-            </Text>
-
-            <TextInput
-              style={[styles.formInput, styles.commentInput]}
-              value={comentario}
-              onChangeText={setComentario}
-              placeholder="Describe el movimiento o escaneo RFID"
-              placeholderTextColor="#64748B"
-              multiline
-            />
-
-            <Text style={styles.inputLabel}>
-              ACTUALIZAR ESTADO
-            </Text>
-
-            {ESTADOS_ENVIO.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  styles.stateButton,
-                  (!paquete || paquete.cerrado || loading) &&
-                    styles.disabledButton,
-                ]}
-                onPress={() => handleCambiarEstado(item.id)}
-                disabled={!paquete || paquete.cerrado || loading}
-              >
-                <View
-                  style={[
-                    styles.stateButtonDot,
-                    { backgroundColor: item.color },
-                  ]}
-                />
-
-                <View style={styles.stateButtonCopy}>
-                  <Text style={styles.stateButtonTitle}>
-                    {item.nombre}
-                  </Text>
-
-                  <Text style={styles.stateButtonDescription}>
-                    {item.detalle}
-                  </Text>
-                </View>
-
-                <Text style={styles.stateButtonArrow}>›</Text>
-              </TouchableOpacity>
-            ))}
-
-            {!paquete && (
-              <Text style={styles.helperText}>
-                Primero consulta una guía en la sección Rastreo para habilitar los cambios.
-              </Text>
-            )}
-
-            {paquete?.cerrado && (
-              <Text style={styles.warningText}>
-                El paquete está cerrado. No se permiten más cambios.
-              </Text>
-            )}
-          </>
+        {usuarioActivo && (
+          <View style={styles.operationsSecureBadge}>
+            <Text style={styles.operationsSecureText}>● SEGURO</Text>
+          </View>
         )}
       </View>
 
-      {feedback.texto ? (
-        <Feedback feedback={feedback} />
-      ) : null}
-    </>
-  );
+      {!usuarioActivo ? (
+        /* LOGIN */
+        <View style={styles.operationsLogin}>
+          <Text style={styles.inputLabel}>CORREO ELECTRÓNICO</Text>
+
+          <TextInput
+            style={styles.formInput}
+            value={correo}
+            onChangeText={setCorreo}
+            placeholder="operador@followup.com"
+            placeholderTextColor="#64748B"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <Text style={styles.inputLabel}>CONTRASEÑA</Text>
+
+          <TextInput
+            style={styles.formInput}
+            value={clave}
+            onChangeText={setClave}
+            placeholder="Ingresa tu contraseña"
+            placeholderTextColor="#64748B"
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            style={[styles.primaryButton, styles.loginButton]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                Iniciar sesión
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* OPERADOR */}
+          <View style={styles.operationsOperator}>
+            <View style={styles.operatorAvatar}>
+              <Text style={styles.operatorAvatarText}>
+                {(usuarioActivo.correo || correo)
+                  .charAt(0)
+                  .toUpperCase()}
+              </Text>
+            </View>
+
+            <View style={styles.operatorInfo}>
+              <Text style={styles.operatorName}>
+                {usuarioActivo.correo || correo}
+              </Text>
+              <Text style={styles.operatorRole}>
+                Operador autenticado
+              </Text>
+            </View>
+
+            <TouchableOpacity onPress={handleLogout}>
+              <Text style={styles.logoutText}>Salir</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* DOS COLUMNAS PRINCIPALES */}
+          <View style={styles.operationsGrid}>
+
+            {/* PAQUETE SELECCIONADO */}
+            <View style={styles.operationsPackage}>
+              <Text style={styles.inputLabel}>
+                GUÍA SELECCIONADA
+              </Text>
+
+              <View style={styles.operationsGuideRow}>
+                <Text style={styles.selectedGuide}>
+                  {paquete?.numero_serie || 'Ninguna guía consultada'}
+                </Text>
+
+                {paquete && (
+                  <View style={styles.operationsStatusBadge}>
+                    <Text style={styles.operationsStatusText}>
+                      {paquete.cerrado ? '● CERRADO' : '● ACTIVO'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.operationsPackageInfo}>
+                <Text style={styles.operationsInfoLabel}>
+                  ESTADO ACTUAL
+                </Text>
+                <Text style={styles.operationsInfoValue}>
+                  {paquete?.estado || 'Sin paquete seleccionado'}
+                </Text>
+              </View>
+            </View>
+
+            {/* ACTUALIZAR ESTADO */}
+            <View style={styles.operationsStates}>
+              <View style={styles.operationsSectionHeader}>
+                <Text style={styles.cardTitle}>
+                  Actualizar estado
+                </Text>
+                <Text style={styles.operationsHint}>
+                  SELECCIONA UNA ACCIÓN
+                </Text>
+              </View>
+
+              <View style={styles.operationsStateGrid}>
+                {ESTADOS_ENVIO.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.stateButton,
+                      styles.operationsStateButton,
+                      (!paquete || paquete.cerrado || loading) &&
+                        styles.disabledButton,
+                    ]}
+                    onPress={() => handleCambiarEstado(item.id)}
+                    disabled={!paquete || paquete.cerrado || loading}
+                  >
+                    <View
+                      style={[
+                        styles.stateButtonDot,
+                        { backgroundColor: item.color },
+                      ]}
+                    />
+
+                    <View style={styles.stateButtonCopy}>
+                      <Text style={styles.stateButtonTitle}>
+                        {item.nombre}
+                      </Text>
+                      <Text style={styles.stateButtonDescription}>
+                        {item.detalle}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.stateButtonArrow}>›</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {!paquete && (
+                <Text style={styles.helperText}>
+                  Consulta primero una guía en la sección Rastreo.
+                </Text>
+              )}
+
+              {paquete?.cerrado && (
+                <Text style={styles.warningText}>
+                  El paquete está cerrado. No se permiten más cambios.
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* AUDITORÍA */}
+          <View style={styles.operationsAudit}>
+            <View style={styles.operationsSectionHeader}>
+              <Text style={styles.cardTitle}>
+                Comentario de auditoría
+              </Text>
+              <Text style={styles.operationsHint}>
+                REGISTRO DE ACTIVIDAD
+              </Text>
+            </View>
+
+            <TextInput
+              style={[
+                styles.formInput,
+                styles.commentInput,
+                styles.operationsAuditInput,
+              ]}
+              value={comentario}
+              onChangeText={setComentario}
+              placeholder="Describe el movimiento o escaneo RFID..."
+              placeholderTextColor="#64748B"
+              multiline
+            />
+          </View>
+        </>
+      )}
+    </View>
+
+    {feedback.texto ? (
+      <Feedback feedback={feedback} />
+    ) : null}
+  </>
+);
+
+
+
 
   // INTERFAZ PRINCIPAL
   return (
@@ -1549,6 +1644,35 @@ routeDestination: {
     marginTop: 8,
   },
 
+  searchSection: {
+  marginTop: 4,
+},
+
+searchInputWrapper: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+  height: 52,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#3B5272',
+  backgroundColor: '#0B1423',
+  paddingHorizontal: 12,
+},
+
+searchIcon: {
+  color: COLORS.blueLight,
+  fontSize: 20,
+  marginRight: 8,
+},
+
+searchHelper: {
+  color: COLORS.muted,
+  fontSize: 10,
+  lineHeight: 16,
+  marginTop: 9,
+},
+
   searchRow: {
     flexDirection: 'row',
     gap: 12,
@@ -1557,13 +1681,11 @@ routeDestination: {
 
   searchInput: {
     flex: 1,
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3B5272',
-    backgroundColor: '#0B1423',
+    height: 50,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
     color: COLORS.white,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     fontSize: 14,
   },
 
@@ -1745,11 +1867,12 @@ routeDestination: {
   },
 
   warningText: {
-    color: COLORS.red,
-    fontSize: 10,
-    lineHeight: 15,
-    fontWeight: '700',
-  },
+  color: '#FB7185',
+  fontSize: 13,
+  fontWeight: '800',
+  marginTop: 12,
+  lineHeight: 22,
+},
 
   infoBanner: {
     backgroundColor: '#142B47',
@@ -1790,81 +1913,75 @@ routeDestination: {
     marginBottom: 18,
   },
 
+    
   timeline: {
-    paddingTop: 2,
+    paddingTop: 14,
+    paddingBottom: 4,
   },
-
   timelineStep: {
     flexDirection: 'row',
-    minHeight: 55,
-    alignItems: 'flex-start',
+    minHeight: 68,
+    alignItems: 'stretch',
   },
-
   timelineRail: {
-    width: 27,
+    width: 34,
     alignItems: 'center',
   },
-
   timelineNode: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 1.5,
-    borderColor: '#536176',
-    backgroundColor: COLORS.surface,
+    borderColor: '#40516A',
+    backgroundColor: '#0B1423',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
-
   timelineNodeActive: {
-    borderWidth: 2,
-    borderColor: COLORS.white,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
   },
-
   timelineNodeText: {
-    color: COLORS.muted,
-    fontSize: 9,
+    color: '#94A3B8',
+    fontSize: 10,
     fontWeight: '800',
   },
-
   timelineNodeTextActive: {
-    color: COLORS.background,
+    color: '#07111F',
   },
-
   timelineLine: {
     width: 2,
     flex: 1,
-    minHeight: 29,
-    backgroundColor: COLORS.border,
-    marginTop: 2,
-  },
-
-  timelineCopy: {
-    flex: 1,
-    paddingLeft: 10,
-    paddingTop: 2,
-  },
-
-  timelineLabel: {
-    color: '#CBD5E1',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-
-  timelineDetail: {
-    color: COLORS.muted,
-    fontSize: 9,
+    minHeight: 40,
+    backgroundColor: '#263449',
     marginTop: 3,
   },
-
-  currentLabel: {
-    color: COLORS.blueLight,
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-    paddingTop: 4,
+  timelineCopy: {
+    flex: 1,
+    paddingLeft: 12,
+    paddingTop: 3,
+    paddingBottom: 17,
   },
+  timelineLabel: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  timelineDetail: {
+    color: '#94A3B8',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 5,
+  },
+  currentLabel: {
+    color: '#60A5FA',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+    paddingTop: 5,
+  },
+
 
   formInput: {
     minHeight: 45,
@@ -1933,6 +2050,23 @@ routeDestination: {
     marginBottom: 10,
   },
 
+  selectedGuideCard: {
+  flex: 1,
+  minHeight: 290,
+  justifyContent: 'space-between',
+  padding: 18,
+  backgroundColor: '#111B2B',
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#263449',
+},
+
+  selectedGuideContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+  },
+
   commentInput: {
     minHeight: 72,
     textAlignVertical: 'top',
@@ -1951,27 +2085,27 @@ routeDestination: {
   },
 
   stateButtonDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    marginRight: 11,
-  },
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+  marginRight: 14,
+},
 
   stateButtonCopy: {
     flex: 1,
   },
 
   stateButtonTitle: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: '800',
-  },
+  color: '#E2E8F0',
+  fontSize: 16,
+  fontWeight: '800',
+},
 
   stateButtonDescription: {
-    color: COLORS.muted,
-    fontSize: 9,
-    marginTop: 3,
-  },
+  color: '#94A3B8',
+  fontSize: 13,
+  marginTop: 5,
+},
 
   stateButtonArrow: {
     color: COLORS.muted,
@@ -1982,4 +2116,574 @@ routeDestination: {
   disabledButton: {
     opacity: 0.4,
   },
+
+  
+dashboard: {
+  gap: 11,
+},
+dashboardTop: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 4,
+},
+dashboardEyebrow: {
+  fontSize: 11,
+  fontWeight: '800',
+  color: COLORS.blueLight,
+},
+dashboardTitle: {
+  fontSize: 26,
+  fontWeight: '900',
+  color: COLORS.white,
+},
+dashboardSubtitle: {
+  fontSize: 12,
+  color: COLORS.muted,
+},
+dashboardLive: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#102A28',
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+  borderRadius: 20,
+},
+dashboardStats: {
+  flexDirection: 'row',
+  gap: 10,
+},
+dashboardStat: {
+  flex: 1,
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 11,
+  padding: 11,
+  minHeight: 72,
+},
+dashboardStatLabel: {
+  fontSize: 10,
+  fontWeight: '800',
+  color: COLORS.muted,
+},
+dashboardStatValue: {
+  fontSize: 24,
+  fontWeight: '900',
+},
+dashboardColumns: {
+  flexDirection: 'row',
+  alignItems: 'stretch',
+  gap: 10,
+},
+
+shipmentsPanel: {
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 12,
+  padding: 10,
+  minWidth: 0,
+},
+dashboardRight: {
+  flex: 1.8,
+  minWidth: 0,
+  justifyContent: 'space-between',
+  gap: 10,
+},
+
+dashboardPanelHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 9,
+},
+dashboardPanelTitle: {
+  fontSize: 15,
+  fontWeight: '800',
+  color: COLORS.white,
+},
+dashboardPanelSubtitle: {
+  fontSize: 11,
+  color: COLORS.muted,
+},
+shipmentCount: {
+  color: COLORS.blueLight,
+  fontSize: 17,
+  fontWeight: '900',
+},
+shipmentItem: {
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 9,
+  padding: 9,
+  marginBottom: 7,
+},
+shipmentItemTop: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+shipmentGuide: {
+  fontSize: 12,
+  fontWeight: '900',
+  color: COLORS.white,
+
+},
+shipmentStatus: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+  alignSelf: 'center',
+  marginRight: 2,
+},
+shipmentStatusDot: {
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+},
+shipmentStatusText: {
+  fontSize: 14,
+  fontWeight: '800',
+  color: COLORS.muted,
+},
+shipmentRecipient: {
+  fontSize: 12,
+  fontWeight: '700',
+  color: COLORS.white,
+},
+shipmentCompany: {
+  fontSize: 11,
+  color: COLORS.muted,
+},
+shipmentAction: {
+  fontSize: 10,
+  fontWeight: '900',
+  color: COLORS.blueLight,
+},
+mapPanel: {
+  flex: 1.1,
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 12,
+  padding: 10,
+  overflow: 'hidden',
+  minWidth: 0,
+},
+mapPanelIcon: {
+  color: COLORS.blueLight,
+  fontSize: 23,
+},
+operationPanel: {
+  flex: 1,
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 12,
+  padding: 12,
+  minHeight: 0,
+  justifyContent: 'space-between',
+},
+operationDetailRow: {
+  flex: 1,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  borderBottomWidth: 1,
+  borderBottomColor: COLORS.border,
+  paddingVertical: 8,
+  gap: 10,
+},
+operationLabel: {
+  fontSize: 11,
+  fontWeight: '800',
+  color: COLORS.blueLight,
+},
+operationValue: {
+  fontSize: 12,
+  fontWeight: '700',
+  color: COLORS.white,
+},
+dashboardEmpty: {
+  color: COLORS.muted,
+  fontSize: 11,
+  paddingVertical: 16,
+  lineHeight: 17,
+},
+
+
+operationsContainer: {
+  backgroundColor: COLORS.surface,
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 14,
+  padding: 16,
+  gap: 16,
+},
+
+operationsHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12,
+  paddingBottom: 14,
+  borderBottomWidth: 1,
+  borderBottomColor: COLORS.border,
+},
+
+operationsHeaderIcon: {
+  width: 44,
+  height: 44,
+  borderRadius: 12,
+  backgroundColor: '#1D3558',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+operationsHeaderIconText: {
+  color: COLORS.blueLight,
+  fontSize: 25,
+  fontWeight: '700',
+},
+
+operationsHeaderCopy: {
+  flex: 1,
+},
+
+operationsHeaderTitle: {
+  color: COLORS.white,
+  fontSize: 15,
+  fontWeight: '900',
+},
+
+operationsHeaderSubtitle: {
+  color: COLORS.muted,
+  fontSize: 11,
+  marginTop: 4,
+},
+
+operationsSecureBadge: {
+  backgroundColor: '#063D32',
+  paddingHorizontal: 12,
+  paddingVertical: 7,
+  borderRadius: 20,
+},
+
+operationsSecureDot: {
+  width: 7,
+  height: 7,
+  borderRadius: 4,
+  backgroundColor: COLORS.green,
+},
+
+operationsSecureText: {
+  color: '#34D399',
+  fontSize: 10,
+  fontWeight: '900',
+},
+
+operationsLogin: {
+  gap: 18,
+},
+
+operationsOperatorCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 11,
+  padding: 12,
+  gap: 12,
+},
+
+operationsLogout: {
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+},
+
+operationsGuideCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: '#101F35',
+  borderWidth: 1,
+  borderColor: '#29476B',
+  borderRadius: 11,
+  padding: 14,
+  gap: 10,
+},
+
+operationsGuideInfo: {
+  flex: 1,
+  gap: 5,
+},
+
+operationsLabel: {
+  color: COLORS.muted,
+  fontSize: 10,
+  fontWeight: '900',
+  letterSpacing: 1,
+},
+
+operationsGuideNumber: {
+  color: COLORS.blueLight,
+  fontSize: 21,
+  fontWeight: '900',
+},
+
+operationsGuideStatus: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 7,
+},
+
+operationsGuideDot: {
+  width: 9,
+  height: 9,
+  borderRadius: 5,
+},
+
+operationsGuideStatusText: {
+  color: COLORS.white,
+  fontSize: 10,
+  fontWeight: '900',
+},
+
+operationsSection: {
+  gap: 11,
+},
+
+operationsSectionHeading: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: 6,
+},
+
+operationsSectionTitle: {
+  color: COLORS.white,
+  fontSize: 20,
+  fontWeight: '900',
+},
+
+operationsSectionHint: {
+  color: COLORS.muted,
+  fontSize: 9,
+  fontWeight: '800',
+  letterSpacing: 0.8,
+},
+
+operationsComment: {
+  minHeight: 105,
+  paddingTop: 12,
+  textAlignVertical: 'top',
+},
+
+operationsStatesGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  gap: 10,
+},
+
+operationsStateCard: {
+  width: '48.5%',
+  minHeight: 76,
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: COLORS.border,
+  borderRadius: 10,
+  padding: 12,
+  gap: 10,
+},
+
+operationsStateIndicator: {
+  width: 11,
+  height: 11,
+  borderRadius: 6,
+},
+
+operationsStateCopy: {
+  flex: 1,
+  gap: 4,
+},
+
+operationsStateTitle: {
+  color: COLORS.white,
+  fontSize: 12,
+  fontWeight: '900',
+},
+
+operationsStateDescription: {
+  color: COLORS.muted,
+  fontSize: 10,
+},
+
+operationsStateArrow: {
+  color: COLORS.muted,
+  fontSize: 22,
+  fontWeight: '400',
+},
+
+
+operationsSecureBadge: {
+  backgroundColor: '#063D32',
+  paddingHorizontal: 12,
+  paddingVertical: 7,
+  borderRadius: 20,
+},
+
+operationsSecureText: {
+  color: '#34D399',
+  fontSize: 10,
+  fontWeight: '900',
+},
+
+operationsLogin: {
+  paddingTop: 18,
+},
+
+operationsOperator: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: '#263449',
+  borderRadius: 12,
+  padding: 14,
+  marginTop: 16,
+  marginBottom: 18,
+},
+
+operationsGrid: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'stretch',
+  gap: 16,
+  marginTop: 18,
+  marginBottom: 18,
+},
+
+operationsPackage: {
+  flex: 0.85,
+  minWidth: 0,
+  backgroundColor: '#111C2E',
+  borderWidth: 1,
+  borderColor: '#263449',
+  borderRadius: 12,
+  padding: 18,
+},
+
+operationsGuideRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: 10,
+  marginTop: 8,
+},
+
+operationsStatusBadge: {
+  backgroundColor: '#123B35',
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  borderRadius: 20,
+},
+
+operationsStatusText: {
+  color: '#34D399',
+  fontSize: 10,
+  fontWeight: '900',
+},
+
+operationsPackageInfo: {
+  borderTopWidth: 1,
+  borderTopColor: '#263449',
+  marginTop: 20,
+  paddingTop: 16,
+},
+
+operationsInfoLabel: {
+  color: '#94A3B8',
+  fontSize: 10,
+  fontWeight: '800',
+  marginBottom: 8,
+},
+
+operationsInfoValue: {
+  color: '#F8FAFC',
+  fontSize: 15,
+  fontWeight: '800',
+},
+
+operationsStates: {
+  flex: 1.35,
+  minWidth: 0,
+  backgroundColor: '#0E1829',
+  borderWidth: 1,
+  borderColor: '#263449',
+  borderRadius: 12,
+  padding: 16,
+},
+
+operationsSectionHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: 8,
+  marginBottom: 14,
+},
+
+operationsHint: {
+  color: '#94A3B8',
+  fontSize: 9,
+  fontWeight: '800',
+},
+
+operationsStateGrid: {
+  flex: 1,
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  alignContent: 'space-evenly',
+  gap: 12,
+  minHeight: 220,
+},
+
+operationsStateButton: {
+  width: '48.5%',
+  minHeight: 82,
+  justifyContent: 'center',
+  paddingHorizontal: 18,
+  paddingVertical: 16,
+},
+
+operationsAudit: {
+  marginTop: 0,
+  backgroundColor: '#0E1829',
+  borderWidth: 1,
+  borderColor: '#263449',
+  borderRadius: 12,
+  padding: 16,
+},
+
+operationsAuditInput: {
+  minHeight: 85,
+  textAlignVertical: 'top',
+  marginBottom: 0,
+},
+
+operationsMainPanel: {
+  minHeight: 680,
+  justifyContent: 'space-between',
+},
+
+
 });
