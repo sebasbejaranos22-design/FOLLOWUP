@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import MapaLogistico from '../components/MapaLogistico';
+import {
+  House,
+  Search,
+  ClipboardList,
+  Package,
+  Navigation,
+} from 'lucide-react-native';
 
 import {
   View,
@@ -284,14 +291,29 @@ export default function RastreoScreen() {
       onPress={() => setSeccion(id)}
       activeOpacity={0.8}
     >
-      <Text
-        style={[
-          styles.navIcon,
-          seccion === id && styles.navTextActive,
-        ]}
-      >
-        {icon}
-      </Text>
+        <View style={styles.navIcon}>
+          {icon === 'OPERACIONES' ? (
+            <ClipboardList
+              size={21}
+              color={seccion === id ? '#FFFFFF' : '#94A3B8'}
+              strokeWidth={2}
+            />
+          ) : icon === 'INICIO' ? (
+            <House
+              size={21}
+              color={seccion === id ? '#FFFFFF' : '#94A3B8'}
+              strokeWidth={2}
+            />
+          ) : icon === 'RASTREO' ? (
+            <Search
+              size={21}
+              color={seccion === id ? '#FFFFFF' : '#94A3B8'}
+              strokeWidth={2}
+            />
+          ) : (
+            <Text style={styles.navIcon}>{icon}</Text>
+          )}
+        </View>
 
       {sidebarExpandido && (
         <Text
@@ -1053,27 +1075,13 @@ const renderOperations = () => (
       />
 
       <View style={styles.topBar}>
-        <View style={styles.brandMark}>
-        <Text style={styles.brandMarkText}>F</Text>
-      </View>
-        
-
-        <View style={styles.brandCopy}>
-          <Text style={styles.brandName}>FOLLOWUP</Text>
-
-          <Text style={styles.brandTagline}>
-            LOGÍSTICA INTELIGENTE
-          </Text>
-        </View>
-
-        <View style={styles.liveIndicator}>
-          <View style={styles.liveDot} />
-
-          <Text style={styles.liveText}>
-            SISTEMA ACTIVO
-          </Text>
-        </View>
-      </View>
+  <View>
+    <Text style={styles.brandName}>FollowUp</Text>
+    <Text style={styles.brandTagline}>
+      GESTIÓN LOGÍSTICA
+    </Text>
+  </View>
+</View>
 
       <View style={styles.mainLayout}>
 
@@ -1090,23 +1098,51 @@ const renderOperations = () => (
     </Text>
   </TouchableOpacity>
 
-  <NavItem
-    id="inicio"
-    label={sidebarExpandido ? "Inicio" : ""}
-    icon="▦"
-  />
+    <NavItem
+      id="inicio"
+      label={sidebarExpandido ? "Inicio" : ""}
+      icon="INICIO"
+    />
 
   <NavItem
     id="rastreo"
     label={sidebarExpandido ? "Rastreo" : ""}
-    icon="⌕"
+    icon="RASTREO"
   />
 
   <NavItem
     id="operaciones"
     label={sidebarExpandido ? "Operaciones" : ""}
-    icon="⚙"
+    icon={<ClipboardList size={22} />}
   />
+
+  <View style={{ flex: 1 }} />
+
+<View style={styles.sidebarProfile}>
+  <View style={styles.sidebarAvatar}>
+    <Text style={styles.sidebarAvatarText}>
+      {(usuarioActivo?.correo || correo || 'U')
+        .charAt(0).toUpperCase()}
+    </Text>
+  </View>
+
+  {sidebarExpandido && (
+    <View style={styles.sidebarProfileInfo}>
+      <Text style={styles.sidebarProfileName}>
+        {usuarioActivo?.correo || 'Usuario'}
+      </Text>
+      <Text style={styles.sidebarProfileEmail}>
+        {usuarioActivo?.correo || correo}
+      </Text>
+    </View>
+  )}
+
+  {sidebarExpandido && (
+    <TouchableOpacity onPress={handleLogout}>
+      <Text style={styles.sidebarLogout}>↪</Text>
+    </TouchableOpacity>
+  )}
+</View>
 </View>
 
       <ScrollView
@@ -1171,6 +1207,33 @@ function Feedback({ feedback }) {
 }
 // ESTILOS GENERALES
 const styles = StyleSheet.create({
+  brandLogo: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12,
+},
+
+brandLogoIcon: {
+  width: 48,
+  height: 48,
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+},
+
+brandName: {
+  color: '#FFFFFF',
+  fontSize: 22,
+  fontWeight: '900',
+  letterSpacing: 1,
+},
+
+brandTagline: {
+  color: '#94A3B8',
+  fontSize: 9,
+  letterSpacing: 2,
+  marginTop: 3,
+},
   screen: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -1250,14 +1313,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  navBar: {
-  backgroundColor: COLORS.surface,
-  borderRightWidth: 1,
-  borderRightColor: COLORS.border,
-  paddingHorizontal: 8,
-  paddingVertical: 12,
-  gap: 10,
-  minHeight: '100%',
+    navBar: {
+    backgroundColor: COLORS.surface,
+    borderRightWidth: 1,
+    borderRightColor: COLORS.border,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    gap: 10,
+    minHeight: '100%',
   },
 
   sidebarToggle: {
@@ -2685,5 +2748,51 @@ operationsMainPanel: {
   justifyContent: 'space-between',
 },
 
+sidebarProfile: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#172338',
+  borderRadius: 12,
+  padding: 10,
+  marginTop: 12,
+  gap: 10,
+},
 
+sidebarAvatar: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: '#24466D',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+sidebarAvatarText: {
+  color: COLORS.white,
+  fontSize: 17,
+  fontWeight: '900',
+},
+
+sidebarProfileInfo: {
+  flex: 1,
+  minWidth: 0,
+},
+
+sidebarProfileName: {
+  color: COLORS.white,
+  fontSize: 12,
+  fontWeight: '800',
+},
+
+sidebarProfileEmail: {
+  color: COLORS.muted,
+  fontSize: 10,
+  marginTop: 3,
+},
+
+sidebarLogout: {
+  color: '#F87171',
+  fontSize: 23,
+  fontWeight: '800',
+},
 });
