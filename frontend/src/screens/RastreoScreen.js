@@ -73,9 +73,10 @@ export default function RastreoScreen() {
   const [guia, setGuia] = useState('PKG003');
   const [paquete, setPaquete] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [mostrarClave, setMostrarClave] = useState(false);
 
-  const [correo, setCorreo] = useState('camila@mail.com');
-  const [clave, setClave] = useState('CamilaSegura2026!');
+ const [correo, setCorreo] = useState('');
+const [clave, setClave] = useState('');
   const [usuarioActivo, setUsuarioActivo] = useState(null);
 
   const [comentario, setComentario] = useState(
@@ -877,27 +878,6 @@ const renderOperations = () => (
     />
 
     <View style={[styles.panel, styles.operationsMainPanel]}>
-      {/* ENCABEZADO */}
-      <View style={styles.panelHeader}>
-        <View style={styles.panelIcon}>
-          <Text style={styles.panelIconText}>⌘</Text>
-        </View>
-
-        <View style={styles.panelHeaderCopy}>
-          <Text style={styles.cardTitle}>
-            Portal RFID · Acceso seguro
-          </Text>
-          <Text style={styles.cardSubtitle}>
-            Gestión protegida mediante autenticación JWT
-          </Text>
-        </View>
-
-        {usuarioActivo && (
-          <View style={styles.operationsSecureBadge}>
-            <Text style={styles.operationsSecureText}>● SEGURO</Text>
-          </View>
-        )}
-      </View>
 
       {!usuarioActivo ? (
         /* LOGIN */
@@ -916,14 +896,26 @@ const renderOperations = () => (
 
           <Text style={styles.inputLabel}>CONTRASEÑA</Text>
 
-          <TextInput
-            style={styles.formInput}
-            value={clave}
-            onChangeText={setClave}
-            placeholder="Ingresa tu contraseña"
-            placeholderTextColor="#64748B"
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              value={clave}
+              onChangeText={setClave}
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor="#64748B"
+              secureTextEntry={!mostrarClave}
+              autoCapitalize="none"
+            />
+
+            <TouchableOpacity
+              onPress={() => setMostrarClave(!mostrarClave)}
+              style={styles.passwordEye}
+            >
+              <Text style={styles.passwordEyeText}>
+                {mostrarClave ? '🙈' : '👁'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[styles.primaryButton, styles.loginButton]}
@@ -941,29 +933,7 @@ const renderOperations = () => (
         </View>
       ) : (
         <>
-          {/* OPERADOR */}
-          <View style={styles.operationsOperator}>
-            <View style={styles.operatorAvatar}>
-              <Text style={styles.operatorAvatarText}>
-                {(usuarioActivo.correo || correo)
-                  .charAt(0)
-                  .toUpperCase()}
-              </Text>
-            </View>
-
-            <View style={styles.operatorInfo}>
-              <Text style={styles.operatorName}>
-                {usuarioActivo.correo || correo}
-              </Text>
-              <Text style={styles.operatorRole}>
-                Operador autenticado
-              </Text>
-            </View>
-
-            <TouchableOpacity onPress={handleLogout}>
-              <Text style={styles.logoutText}>Salir</Text>
-            </TouchableOpacity>
-          </View>
+          
 
           {/* DOS COLUMNAS PRINCIPALES */}
           <View style={styles.operationsGrid}>
@@ -1259,7 +1229,92 @@ const renderOperations = () => (
   </View>
 </View>
 
-      <View style={styles.mainLayout}>
+
+      {!usuarioActivo && (
+        <View style={styles.loginContainer}>
+          <View style={styles.loginCard}>
+            <Text style={styles.loginBrand}>FollowUp</Text>
+            <Text style={styles.loginSubtitle}>
+              GESTIÓN LOGÍSTICA
+            </Text>
+
+            <View style={styles.loginDivider} />
+
+            <Text style={styles.loginTitle}>Bienvenido</Text>
+            <Text style={styles.loginDescription}>
+              Ingresa tus credenciales para continuar
+            </Text>
+
+            <Text style={styles.loginLabel}>Correo electrónico</Text>
+            <TextInput
+              style={styles.loginInput}
+              placeholder="Ingresa tu correo"
+              placeholderTextColor="#64748B"
+              value={correo}
+              onChangeText={setCorreo}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <Text style={styles.loginLabel}>Contraseña</Text>
+
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Ingresa tu contraseña"
+                placeholderTextColor="#64748B"
+                value={clave}
+                onChangeText={setClave}
+                secureTextEntry={!mostrarClave}
+                autoCapitalize="none"
+              />
+
+              <TouchableOpacity
+                onPress={() => setMostrarClave(!mostrarClave)}
+                style={styles.passwordEye}
+              >
+                <Text style={styles.passwordEyeText}>
+                  {mostrarClave ? '◉' : '◎'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {feedback.texto !== '' && (
+              <Text style={{
+                color: feedback.tipo === 'error' ? '#F87185' : '#34D399',
+                marginTop: 12,
+                fontSize: 12,
+              }}>
+                {feedback.texto}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.loginButtonText}>
+                  Iniciar sesión
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.loginFooter}>
+              Plataforma de gestión y seguimiento de envíos
+            </Text>
+          </View>
+        </View>
+      )}
+
+
+      {usuarioActivo && (
+        <View style={styles.mainLayout}>
+          
+        
 
       <View style={[
         styles.navBar,
@@ -1346,7 +1401,8 @@ const renderOperations = () => (
           </Text>
         </View>
       </ScrollView>
-      </View>
+    </View>
+    )}
     </View>
   );
 }
@@ -2996,5 +3052,127 @@ sidebarLogout: {
   color: '#F87171',
   fontSize: 23,
   fontWeight: '800',
+},
+loginContainer: {
+  flex: 1,
+  width: '100%',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: 20,
+},
+
+loginCard: {
+  width: '100%',
+  maxWidth: 440,
+  backgroundColor: '#111827',
+  borderWidth: 1,
+  borderColor: '#263449',
+  borderRadius: 20,
+  padding: 32,
+  alignItems: 'stretch',
+},
+
+loginBrand: {
+  color: '#FFFFFF',
+  fontSize: 30,
+  fontWeight: '900',
+  textAlign: 'center',
+  letterSpacing: 1,
+},
+
+loginSubtitle: {
+  color: '#60A5FA',
+  fontSize: 10,
+  textAlign: 'center',
+  letterSpacing: 3,
+  marginTop: 5,
+},
+
+loginDivider: {
+  height: 1,
+  backgroundColor: '#263449',
+  marginVertical: 25,
+},
+
+loginTitle: {
+  color: '#FFFFFF',
+  fontSize: 25,
+  fontWeight: '800',
+  marginBottom: 8,
+},
+
+loginDescription: {
+  color: '#94A3B8',
+  fontSize: 13,
+  marginBottom: 25,
+},
+
+loginLabel: {
+  color: '#CBD5E1',
+  fontSize: 12,
+  fontWeight: '700',
+  marginBottom: 8,
+},
+
+loginInput: {
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: '#334155',
+  borderRadius: 10,
+  padding: 14,
+  color: '#FFFFFF',
+  fontSize: 14,
+  marginBottom: 18,
+},
+
+loginButton: {
+  backgroundColor: '#2563EB',
+  borderRadius: 10,
+  padding: 15,
+  alignItems: 'center',
+  marginTop: 10,
+},
+
+loginButtonText: {
+  color: '#FFFFFF',
+  fontSize: 14,
+  fontWeight: '800',
+},
+
+loginFooter: {
+  color: '#64748B',
+  fontSize: 10,
+  textAlign: 'center',
+  marginTop: 22,
+},
+
+passwordContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: '#334155',
+  borderRadius: 10,
+  marginBottom: 18,
+  paddingRight: 8,
+},
+
+passwordInput: {
+  flex: 1,
+  padding: 14,
+  color: '#FFFFFF',
+  fontSize: 14,
+  outlineStyle: 'none',
+},
+
+passwordEye: {
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  cursor: 'pointer',
+},
+
+passwordEyeText: {
+  fontSize: 18,
+  color: '#FFFFFF',
 },
 });
