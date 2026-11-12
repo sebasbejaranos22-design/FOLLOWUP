@@ -7,6 +7,9 @@ import {
   ClipboardList,
   Package,
   Navigation,
+  Info,
+  Eye,
+  EyeOff,
 } from 'lucide-react-native';
 
 import {
@@ -74,9 +77,11 @@ export default function RastreoScreen() {
   const [paquete, setPaquete] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mostrarClave, setMostrarClave] = useState(false);
+  const [mostrarInfoBusqueda, setMostrarInfoBusqueda] = useState(false);
+  const [mostrarInfoOperaciones, setMostrarInfoOperaciones] = useState(false);
 
- const [correo, setCorreo] = useState('');
-const [clave, setClave] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [clave, setClave] = useState('');
   const [usuarioActivo, setUsuarioActivo] = useState(null);
 
   const [comentario, setComentario] = useState(
@@ -87,6 +92,23 @@ const [clave, setClave] = useState('');
     tipo: '',
     texto: '',
   });
+
+
+  useEffect(() => {
+    if (!feedback.texto) return;
+
+    const tiempo = feedback.tipo === 'error' ? 6000 : 3500;
+
+    const temporizador = setTimeout(() => {
+      setFeedback({
+        tipo: '',
+        texto: '',
+      });
+    }, tiempo);
+
+    return () => clearTimeout(temporizador);
+  }, [feedback]);
+
 
   // LUCES ANIMADAS DEL FONDO
 const luzUno = useRef(new Animated.Value(0)).current;
@@ -379,7 +401,7 @@ const renderTimeline = () => {
   if (!paquete) return null;
 
   return (
-    <View style={styles.timelineCard}>
+    <View style={[styles.timelineCard, styles.timelineCardHorizontal]}>
       <View style={styles.timelineHeader}>
         <View>
           <Text style={styles.cardEyebrow}>PROGRESO DEL ENVÍO</Text>
@@ -481,184 +503,249 @@ const renderTimeline = () => {
   );
 };
 
-  // BÚSQUEDA DE ENVÍOS
   
-  const renderSearch = () => (
-    <View style={styles.panel}>
-      <View style={styles.panelHeader}>
-        <View style={styles.panelIcon}>
-          <Text style={styles.panelIconText}>⌕</Text>
-        </View>
-
-        <View style={styles.panelHeaderCopy}>
-          <Text style={styles.cardTitle}>
-            Rastrea tu paquete
-          </Text>
-
-          <Text style={styles.cardSubtitle}>
-            Consulta dónde está tu envío y conoce su estado actual.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.searchSection}>
-        <Text style={styles.inputLabel}>
-          NÚMERO DE GUÍA
+// BÚSQUEDA DE ENVÍOS
+const renderSearch = () => (
+  <View style={styles.panel}>
+    <View style={styles.panelHeader}>
+      <View style={styles.searchTitleRow}>
+        <Text style={styles.cardTitle}>
+          Consultar envío
         </Text>
 
-        <View style={styles.searchRow}>
-          <View style={styles.searchInputWrapper}>
-            <Text style={styles.searchIcon}>⌕</Text>
+        <View
+          style={styles.infoWrapper}
+          onMouseEnter={() => setMostrarInfoBusqueda(true)}
+          onMouseLeave={() => setMostrarInfoBusqueda(false)}
+        >
+          <TouchableOpacity
+            onPress={() => setMostrarInfoBusqueda(!mostrarInfoBusqueda)}
+            style={styles.infoButton}
+          >
+            <Info size={17} color={COLORS.blueLight} />
+          </TouchableOpacity>
 
-            <TextInput
-              style={styles.searchInput}
-              value={guia}
-              onChangeText={setGuia}
-              placeholder="Ej. PKG001"
-              placeholderTextColor="#64748B"
-              autoCapitalize="characters"
-              returnKeyType="search"
-              onSubmitEditing={handleRastrear}
-            />
+          {mostrarInfoBusqueda && (
+            <View style={styles.infoTooltip}>
+              <Text style={styles.infoTooltipText}>
+                Consulta la ubicación lógica y el estado de tus paquetes.
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+
+    <View style={styles.searchRow}>
+      <View style={styles.searchInputWrapper}>
+        <Search size={18} color={COLORS.blueLight} strokeWidth={2} />
+
+        <TextInput
+          style={styles.searchInput}
+          value={guia}
+          onChangeText={setGuia}
+          placeholder="Ingresa el número de guía"
+          placeholderTextColor="#64748B"
+          autoCapitalize="characters"
+          returnKeyType="search"
+          onSubmitEditing={handleRastrear}
+        />
+      </View>
+
+      <TouchableOpacity
+        style={[styles.primaryButton, styles.searchButton]}
+        onPress={handleRastrear}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color={COLORS.white} />
+        ) : (
+          <Text style={styles.primaryButtonText}>
+            Buscar →
+          </Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+
+
+  
+// INFORMACIÓN DEL PAQUETE
+const renderPackage = () => (
+  paquete ? (
+    <View style={styles.trackingResultRow}>
+      {/* COLUMNA IZQUIERDA: INFORMACIÓN */}
+      <View style={[styles.packageCard, styles.packageCardHorizontal]}>
+        <View style={styles.packageTopRow}>
+          <View>
+            <Text style={styles.cardEyebrow}>
+              INFORMACIÓN DEL ENVÍO
+            </Text>
+
+            <Text style={styles.packageNumber}>
+              {paquete.numero_serie}
+            </Text>
           </View>
 
-          <TouchableOpacity
-            style={[styles.primaryButton, styles.searchButton]}
-            onPress={handleRastrear}
-            disabled={loading}
+          <View
+            style={[
+              styles.statusPill,
+              {
+                backgroundColor: `${estadoInfo?.color || COLORS.muted}20`,
+              },
+            ]}
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.primaryButtonText}>
-                Buscar →
-              </Text>
-            )}
-          </TouchableOpacity>
+            <View
+              style={[
+                styles.statusDot,
+                {
+                  backgroundColor: estadoInfo?.color || COLORS.muted,
+                },
+              ]}
+            />
+
+            <Text
+              style={[
+                styles.statusPillText,
+                {
+                  color: estadoInfo?.color || COLORS.muted,
+                },
+              ]}
+            >
+              {paquete.estado}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.searchHelper}>
-          Introduce el código de seguimiento proporcionado por la empresa transportadora.
+        <View style={styles.packageDivider} />
+
+        <View style={styles.detailsGridVertical}>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>DESTINATARIO</Text>
+            <Text style={styles.detailValue}>
+              {paquete.destinatario || paquete.cliente || 'Protegido'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>TRANSPORTADORA</Text>
+            <Text style={styles.detailValue}>
+              {paquete.empresa || 'FollowUp'}
+            </Text>
+          </View>
+        </View>
+
+        
+{(() => {
+  const estadoVisual = {
+    1: {
+      titulo: 'Envío registrado',
+      mensaje: 'Tu paquete se encuentra en bodega y está pendiente de continuar su recorrido.',
+      color: '#60A5FA',
+      fondo: '#172D49',
+      icono: '📦',
+    },
+    2: {
+      titulo: 'En tránsito',
+      mensaje: 'Tu paquete está en movimiento hacia su destino. El seguimiento continúa activo.',
+      color: '#60A5FA',
+      fondo: '#172D49',
+      icono: '🚚',
+    },
+    3: {
+      titulo: 'Entrega completada',
+      mensaje: 'El envío ha finalizado correctamente. No requiere acciones adicionales.',
+      color: '#34D399',
+      fondo: '#10352F',
+      icono: '✓',
+    },
+    4: {
+      titulo: 'Entrega no completada',
+      mensaje: 'El envío requiere un nuevo intento de entrega o revisión.',
+      color: '#F87171',
+      fondo: '#3B242B',
+      icono: '!',
+    },
+  };
+
+  const info = estadoVisual[estadoActual] || {
+    titulo: 'Estado del envío',
+    mensaje: 'Consulta el progreso de tu paquete en la línea de tiempo.',
+    color: COLORS.blueLight,
+    fondo: '#172D49',
+    icono: 'i',
+  };
+
+  return (
+    <View
+      style={[
+        styles.packageStatusBanner,
+        { backgroundColor: info.fondo },
+      ]}
+    >
+      <View
+        style={[
+          styles.packageStatusIcon,
+          { backgroundColor: `${info.color}20` },
+        ]}
+      >
+        <Text style={{ color: info.color, fontSize: 18, fontWeight: '900' }}>
+          {info.icono}
+        </Text>
+      </View>
+
+      <View style={styles.packageStatusContent}>
+        <Text
+          style={[
+            styles.packageStatusTitle,
+            { color: info.color },
+          ]}
+        >
+          {info.titulo}
+        </Text>
+
+        <Text style={styles.packageStatusDescription}>
+          {info.mensaje}
         </Text>
       </View>
     </View>
   );
+})()}
 
 
-  // INFORMACIÓN DEL PAQUETE
-  const renderPackage = () => (
-    paquete ? (
-      <>
-        <View style={styles.packageCard}>
-          <View style={styles.packageTopRow}>
-            <View>
-              <Text style={styles.cardEyebrow}>
-                INFORMACIÓN DEL ENVÍO
-              </Text>
-
-              <Text style={styles.packageNumber}>
-                {paquete.numero_serie}
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.statusPill,
-                {
-                  backgroundColor:
-                    `${estadoInfo?.color || COLORS.muted}20`,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.statusDot,
-                  {
-                    backgroundColor:
-                      estadoInfo?.color || COLORS.muted,
-                  },
-                ]}
-              />
-
-              <Text
-                style={[
-                  styles.statusPillText,
-                  {
-                    color: estadoInfo?.color || COLORS.muted,
-                  },
-                ]}
-              >
-                {paquete.estado}
-              </Text>
-            </View>
+        {(
+          String(paquete.estado || '').toLowerCase().includes('tránsito') ||
+          String(paquete.estado || '').toLowerCase().includes('transito')
+        ) && (
+          <View style={styles.infoBanner}>
+            <Text style={styles.infoBannerIcon}>⌖</Text>
+            <Text style={styles.infoBannerText}>
+              Unidad en tránsito activo. Seguimiento de proximidad habilitado.
+            </Text>
           </View>
-
-          <View style={styles.packageDivider} />
-
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>
-                DESTINATARIO
-              </Text>
-
-              <Text style={styles.detailValue}>
-                {paquete.destinatario || paquete.cliente || 'Protegido'}
-              </Text>
-            </View>
-
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>
-                TRANSPORTADORA
-              </Text>
-
-              <Text style={styles.detailValue}>
-                {paquete.empresa || 'FollowUp'}
-              </Text>
-            </View>
-          </View>
-
-          {paquete.cerrado && (
-            <View style={styles.warningBanner}>
-              <Text style={styles.warningText}>
-                Este envío está finalizado y no admite más actualizaciones.
-              </Text>
-            </View>
-          )}
-
-          {(
-            String(paquete.estado || '')
-              .toLowerCase()
-              .includes('tránsito') ||
-            String(paquete.estado || '')
-              .toLowerCase()
-              .includes('transito')
-          ) ? (
-            <View style={styles.infoBanner}>
-              <Text style={styles.infoBannerIcon}>⌖</Text>
-
-              <Text style={styles.infoBannerText}>
-                Unidad en tránsito activo. Seguimiento de proximidad habilitado.
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        {renderTimeline()}
-      </>
-    ) : (
-      <View style={styles.emptyCard}>
-        <Text style={styles.emptyIcon}>⌖</Text>
-
-        <Text style={styles.emptyTitle}>
-          Tu envío aparecerá aquí
-        </Text>
-
-        <Text style={styles.emptyDescription}>
-          Busca una guía para consultar su estado, destinatario y progreso de entrega.
-        </Text>
+        )}
       </View>
-    )
-  );
+
+      {/* COLUMNA DERECHA: TIMELINE */}
+      <View style={styles.timelineColumn}>
+        {renderTimeline()}
+      </View>
+    </View>
+  ) : (
+    <View style={styles.emptyCard}>
+      <Text style={styles.emptyIcon}>⌖</Text>
+      <Text style={styles.emptyTitle}>
+        Tu envío aparecerá aquí
+      </Text>
+      <Text style={styles.emptyDescription}>
+        Busca una guía para consultar su estado, destinatario y progreso de entrega.
+      </Text>
+    </View>
+  )
+);
+
 
 
   
@@ -713,7 +800,7 @@ const renderDashboard = () => {
                 Ubicación de los envíos disponibles
               </Text>
             </View>
-            <Text style={styles.mapPanelIcon}>⌖</Text>
+            
           </View>
 
           <MapaLogistico paquetes={paquetes} />
@@ -850,9 +937,7 @@ const renderDashboard = () => {
   const renderTracking = () => (
     <>
       <SectionTitle
-        eyebrow="SEGUIMIENTO INTELIGENTE"
         title="Rastreo de envíos"
-        description="Consulta la ubicación lógica y el estado de tus paquetes."
       />
 
       {renderSearch()}
@@ -871,13 +956,34 @@ const renderDashboard = () => {
 // PANEL ADMINISTRATIVO
 const renderOperations = () => (
   <>
-    <SectionTitle
-      eyebrow="PANEL ADMINISTRATIVO"
-      title="Centro de operaciones"
-      description="Gestiona y controla los movimientos de tus paquetes."
-    />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+      <Text style={styles.operationsEyebrow}>
+        Panel Administrativo
+      </Text>
 
-    <View style={[styles.panel, styles.operationsMainPanel]}>
+      <View
+        style={styles.infoWrapper}
+        onMouseEnter={() => setMostrarInfoOperaciones(true)}
+        onMouseLeave={() => setMostrarInfoOperaciones(false)}
+      >
+        <TouchableOpacity
+          onPress={() => setMostrarInfoOperaciones(!mostrarInfoOperaciones)}
+          style={styles.infoButton}
+        >
+          <Info size={17} color="#60A5FA" />
+        </TouchableOpacity>
+
+        {mostrarInfoOperaciones && (
+          <View style={styles.infoTooltip}>
+            <Text style={styles.infoTooltipText}>
+              Gestiona y controla los movimientos de tus paquetes.
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+
+  
 
       {!usuarioActivo ? (
         /* LOGIN */
@@ -910,10 +1016,13 @@ const renderOperations = () => (
             <TouchableOpacity
               onPress={() => setMostrarClave(!mostrarClave)}
               style={styles.passwordEye}
+              activeOpacity={0.7}
             >
-              <Text style={styles.passwordEyeText}>
-                {mostrarClave ? '🙈' : '👁'}
-              </Text>
+              {mostrarClave ? (
+                <EyeOff size={22} color="#94A3B8" />
+              ) : (
+                <Eye size={22} color="#94A3B8" />
+              )}
             </TouchableOpacity>
           </View>
 
@@ -931,8 +1040,9 @@ const renderOperations = () => (
             )}
           </TouchableOpacity>
         </View>
-      ) : (
-        <>
+        
+        ) : (
+          <>
           
 
           {/* DOS COLUMNAS PRINCIPALES */}
@@ -940,33 +1050,50 @@ const renderOperations = () => (
 
             {/* PAQUETE SELECCIONADO */}
             <View style={styles.operationsPackage}>
-              <Text style={styles.inputLabel}>
-                GUÍA SELECCIONADA
+
+            <View style={styles.operationsPackageTop}>
+            <Text style={styles.inputLabel}>
+              GUÍA SELECCIONADA
+            </Text>
+
+            <View style={styles.operationsGuideRow}>
+              <Text style={styles.operationsSelectedGuide}>
+                {paquete?.numero_serie || 'Ninguna guía consultada'}
               </Text>
 
-              <View style={styles.operationsGuideRow}>
-                <Text style={styles.selectedGuide}>
-                  {paquete?.numero_serie || 'Ninguna guía consultada'}
-                </Text>
-
-                {paquete && (
-                  <View style={styles.operationsStatusBadge}>
-                    <Text style={styles.operationsStatusText}>
-                      {paquete.cerrado ? '● CERRADO' : '● ACTIVO'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.operationsPackageInfo}>
-                <Text style={styles.operationsInfoLabel}>
-                  ESTADO ACTUAL
-                </Text>
-                <Text style={styles.operationsInfoValue}>
-                  {paquete?.estado || 'Sin paquete seleccionado'}
-                </Text>
-              </View>
+              {paquete && (
+                <View style={styles.operationsStatusBadge}>
+                  <Text style={styles.operationsStatusText}>
+                    {paquete.cerrado ? '● CERRADO' : '● ACTIVO'}
+                  </Text>
+                </View>
+              )}
             </View>
+          </View>
+
+            <View style={styles.operationsPackageDivider} />
+
+            <View style={styles.operationsInfoHeader}>
+              <View
+                style={[
+                  styles.operationsInfoDot,
+                  {
+                    backgroundColor: paquete?.cerrado
+                      ? '#34D399'
+                      : '#60A5FA',
+                  },
+                ]}
+              />
+              <Text style={styles.operationsInfoLabel}>
+                ESTADO ACTUAL
+              </Text>
+            </View>
+
+            <Text style={styles.operationsInfoValue}>
+              {paquete?.estado || 'Sin paquete seleccionado'}
+            </Text>
+
+          </View>
 
             {/* ACTUALIZAR ESTADO */}
             <View style={styles.operationsStates}>
@@ -1010,6 +1137,8 @@ const renderOperations = () => (
 
                     <Text style={styles.stateButtonArrow}>›</Text>
                   </TouchableOpacity>
+                  
+                  
                 ))}
               </View>
 
@@ -1052,8 +1181,7 @@ const renderOperations = () => (
             />
           </View>
         </>
-      )}
-    </View>
+    )}
 
     {feedback.texto ? (
       <Feedback feedback={feedback} />
@@ -1273,9 +1401,7 @@ const renderOperations = () => (
                 onPress={() => setMostrarClave(!mostrarClave)}
                 style={styles.passwordEye}
               >
-                <Text style={styles.passwordEyeText}>
-                  {mostrarClave ? '◉' : '◎'}
-                </Text>
+                
               </TouchableOpacity>
             </View>
 
@@ -1358,20 +1484,20 @@ const renderOperations = () => (
   </View>
 
   {sidebarExpandido && (
-    <View style={styles.sidebarProfileInfo}>
-      <Text style={styles.sidebarProfileName}>
-        {usuarioActivo?.correo || 'Usuario'}
-      </Text>
-      <Text style={styles.sidebarProfileEmail}>
-        {usuarioActivo?.correo || correo}
-      </Text>
-    </View>
-  )}
+    <>
+      <View style={styles.sidebarProfileInfo}>
+        <Text style={styles.sidebarProfileEmail} numberOfLines={2}>
+          {usuarioActivo?.correo || correo}
+        </Text>
+      </View>
 
-  {sidebarExpandido && (
-    <TouchableOpacity onPress={handleLogout}>
-      <Text style={styles.sidebarLogout}>↪</Text>
-    </TouchableOpacity>
+      <TouchableOpacity
+        onPress={handleLogout}
+        style={styles.sidebarLogoutButton}
+      >
+        <Text style={styles.sidebarLogoutText}>Sign out</Text>
+      </TouchableOpacity>
+    </>
   )}
 </View>
 </View>
@@ -1697,6 +1823,14 @@ brandName: {
     letterSpacing: 1.5,
   },
 
+  operationsEyebrow: {
+  color: '#F8FAFC',
+  fontSize: 28,
+  fontWeight: '800',
+  letterSpacing: -0.8,
+  marginBottom: 7,
+},
+
   welcomeTitle: {
     color: COLORS.white,
     fontSize: 25,
@@ -1842,6 +1976,9 @@ routeDestination: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 18,
+    position: 'relative',
+    zIndex: 20,
+    overflow: 'visible',
   },
 
   panelIcon: {
@@ -1998,6 +2135,8 @@ searchHelper: {
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 1,
   },
 
   searchInput: {
@@ -2158,26 +2297,28 @@ searchHelper: {
   },
 
   detailsGrid: {
-    flexDirection: 'row',
-    gap: 12,
+  flexDirection: 'column',
+  gap: 22,
   },
 
   detailItem: {
     flex: 1,
+    gap: 3,
   },
 
   detailLabel: {
-    color: COLORS.muted,
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 6,
+  color: '#94A3B8',
+  fontSize: 10,
+  fontWeight: '800',
+  letterSpacing: 1,
+  marginBottom: 7,
   },
 
   detailValue: {
     color: COLORS.white,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 21,
   },
 
   warningBanner: {
@@ -2476,6 +2617,10 @@ dashboardStats: {
 },
 dashboardStat: {
   flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 14,
+  paddingHorizontal: 10,
   backgroundColor: COLORS.surface,
   borderWidth: 1,
   borderColor: COLORS.border,
@@ -2484,13 +2629,17 @@ dashboardStat: {
   minHeight: 72,
 },
 dashboardStatLabel: {
-  fontSize: 10,
+  color: '#94A3B8',
+  fontSize: 11,
   fontWeight: '800',
+  textAlign: 'center',
+  marginBottom: 5,
   color: COLORS.muted,
 },
 dashboardStatValue: {
   fontSize: 24,
   fontWeight: '900',
+  textAlign: 'center',
 },
 dashboardColumns: {
   flexDirection: 'row',
@@ -2897,17 +3046,45 @@ operationsPackage: {
   backgroundColor: '#111C2E',
   borderWidth: 1,
   borderColor: '#263449',
-  borderRadius: 12,
-  padding: 18,
+  borderRadius: 14,
+  padding: 22,
+  minHeight: 230,
+  justifyContent: 'flex-start',
 },
 
 operationsGuideRow: {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
-  flexWrap: 'wrap',
   gap: 10,
-  marginTop: 8,
+  marginTop: 12,
+  paddingBottom: 22,
+  borderBottomWidth: 1,
+  borderBottomColor: '#263449',
+},
+
+operationsSelectedGuide: {
+  color: '#60A5FA',
+  fontSize: 21,
+  fontWeight: '800',
+},
+
+operationsPackageInfo: {
+  marginTop: 22,
+  gap: 9,
+},
+
+operationsInfoLabel: {
+  color: '#94A3B8',
+  fontSize: 10,
+  fontWeight: '800',
+  letterSpacing: 1,
+},
+
+operationsInfoValue: {
+  color: '#FFFFFF',
+  fontSize: 22,
+  fontWeight: '800',
 },
 
 operationsStatusBadge: {
@@ -2915,6 +3092,7 @@ operationsStatusBadge: {
   paddingHorizontal: 10,
   paddingVertical: 6,
   borderRadius: 20,
+  alignSelf: 'flex-start',
 },
 
 operationsStatusText: {
@@ -3034,6 +3212,7 @@ sidebarAvatarText: {
 sidebarProfileInfo: {
   flex: 1,
   minWidth: 0,
+  marginLeft: 8,
 },
 
 sidebarProfileName: {
@@ -3043,9 +3222,11 @@ sidebarProfileName: {
 },
 
 sidebarProfileEmail: {
-  color: COLORS.muted,
-  fontSize: 10,
-  marginTop: 3,
+  color: '#CBD5E1',
+  fontSize: 9,
+  fontWeight: '600',
+  flexShrink: 1,
+  lineHeight: 13,
 },
 
 sidebarLogout: {
@@ -3147,32 +3328,163 @@ loginFooter: {
 },
 
 passwordContainer: {
+  position: 'relative',
   flexDirection: 'row',
   alignItems: 'center',
-  backgroundColor: '#0B1423',
-  borderWidth: 1,
-  borderColor: '#334155',
-  borderRadius: 10,
+  width: '100%',
   marginBottom: 18,
-  paddingRight: 8,
 },
 
 passwordInput: {
   flex: 1,
+  minWidth: 0,
   padding: 14,
+  paddingRight: 48,
+  backgroundColor: '#0B1423',
+  borderWidth: 1,
+  borderColor: '#334155',
+  borderRadius: 10,
   color: '#FFFFFF',
   fontSize: 14,
   outlineStyle: 'none',
 },
 
 passwordEye: {
-  paddingHorizontal: 12,
-  paddingVertical: 10,
-  cursor: 'pointer',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  bottom: 0,
+  width: 44,
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderWidth: 0,
+  zIndex: 999,
+  elevation: 10,
 },
 
 passwordEyeText: {
   fontSize: 18,
   color: '#FFFFFF',
 },
+
+sidebarLogoutButton: {
+  paddingHorizontal: 5,
+  paddingVertical: 6,
+  borderRadius: 7,
+  backgroundColor: '#263449',
+  marginLeft: 5,
+},
+
+sidebarLogoutText: {
+  color: '#E2E8F0',
+  fontSize: 11,
+  fontWeight: '700',
+},
+
+
+trackingResultRow: {
+  flexDirection: 'row',
+  alignItems: 'stretch',
+  gap: 14,
+  width: '100%',
+},
+
+packageCardHorizontal: {
+  flex: 0.85,
+  minWidth: 0,
+  marginTop: 0,
+},
+
+detailsGridVertical: {
+  flexDirection: 'column',
+  gap: 22,
+},
+
+timelineColumn: {
+  flex: 1.35,
+  minWidth: 0,
+},
+
+timelineCardHorizontal: {
+  flex: 1,
+  height: '100%',
+  marginTop: 0,
+},
+
+
+searchTitleRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+},
+
+infoWrapper: {
+  position: 'relative',
+  zIndex: 30,
+},
+
+infoButton: {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+},
+
+infoTooltip: {
+  position: 'absolute',
+  left: 30,
+  top: -5,
+  width: 280,
+  backgroundColor: '#1E293B',
+  borderWidth: 1,
+  borderColor: '#334155',
+  borderRadius: 8,
+  padding: 12,
+  zIndex: 999,
+  elevation: 10,
+},
+
+infoTooltipText: {
+  color: '#CBD5E1',
+  fontSize: 12,
+  lineHeight: 18,
+},
+
+
+packageStatusBanner: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: 16,
+  borderRadius: 12,
+  marginTop: 22,
+  gap: 12,
+  minHeight: 82,
+},
+
+packageStatusIcon: {
+  width: 38,
+  height: 38,
+  borderRadius: 11,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+packageStatusContent: {
+  flex: 1,
+  gap: 5,
+},
+
+packageStatusTitle: {
+  fontSize: 13,
+  fontWeight: '800',
+},
+
+packageStatusDescription: {
+  color: '#B8C5D6',
+  fontSize: 11,
+  lineHeight: 17,
+},
+
 });

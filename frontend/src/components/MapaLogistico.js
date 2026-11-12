@@ -47,10 +47,7 @@ export default function MapaLogistico({ paquetes = [] }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>SEGUIMIENTO GPS</Text>
-          <Text style={styles.title}>Mapa logístico</Text>
-        </View>
+        <Text style={styles.eyebrow}>SEGUIMIENTO GPS</Text>
 
         <Text style={styles.counter}>
           {ubicaciones.length} ubicaciones
@@ -108,14 +105,14 @@ export default function MapaLogistico({ paquetes = [] }) {
 }
 
 const styles = StyleSheet.create({
+  
   container: {
-    backgroundColor: '#111827',
-    borderColor: '#263449',
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 18,
-    marginTop: 20,
-  },
+  backgroundColor: 'transparent',
+  borderWidth: 0,
+  borderRadius: 0,
+  padding: 0,
+  marginTop: 12,
+},
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
